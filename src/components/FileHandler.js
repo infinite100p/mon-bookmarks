@@ -13,7 +13,7 @@ class FileHandler extends React.Component {
     // Default state
     this.state = { 
       htmlStr: "",
-      components: {"url": ['http','\"'], "date": ['ADD_DATE=\"', '\" ICON'], "name": ['\"','</A>']}      
+      bookmarkProperties: this.props.bookmarkProperties 
   };
   }
 
@@ -25,7 +25,13 @@ class FileHandler extends React.Component {
 
   updateDataRetrieved = () => {
     this.props.updateDataRetrieved('true');
-  } 
+  }    
+  updateDataExtracted = (dataObj) => {
+    this.props.updateDataExtracted(dataObj);
+  }  
+  // sendBookmarkPropertiesProp = () => {
+  //   this.state.bookmarkProperties;
+  // } 
 
   handleFile = (event) => {
     const file = event.target.files[0];
@@ -71,7 +77,8 @@ class FileHandler extends React.Component {
       console.log("reader: " + reader.result);
       let fileObj = event.target.result;
       monday.storage.instance.setItem("fileObj", fileObj).then(() => {
-        console.log("fileObj set in storage: " + file);
+        // retrieval returns [object, Obj] instead of [object File]
+        console.log("fileObj set in storage: " + file); 
       });
       console.log("res: " + typeof fileObj); // str
       console.log("file: " + file);
@@ -85,6 +92,7 @@ class FileHandler extends React.Component {
     });
     console.log("reader: " + reader.readAsText(file));
     this.updateDataRetrieved();
+    // this.sendBookmarkProperties();
     return dfd.promise();
   };
 
@@ -104,12 +112,12 @@ class FileHandler extends React.Component {
 
   // array of bookmarks data
   extractBookmarks = (splitStrArr) => {
-    const {components} = this.state;
+    const {bookmarkProperties} = this.state;
     let resArr = [];
     splitStrArr.map((str) => {
       let obj = {};
-      for (const key in components) {
-        let val = components[key];
+      for (const key in this.state.bookmarkProperties) {
+        let val = this.state.bookmarkProperties[key];
         let startIndex = str.indexOf(val[0]);
         
         if (key === "name") {
@@ -124,13 +132,16 @@ class FileHandler extends React.Component {
       }
         resArr.push(obj);
     })
-    console.log(`extracted: ${JSON.stringify(resArr)}`)
+    // let extracted = resArr);
+    // this.setState({extracted: resArr});
+    this.updateDataExtracted(resArr);
+    console.log(`extracted: ${JSON.stringify(resArr)}`);
     return resArr; 
   }
 
   getColumnNames = () => {
     let resArr = [];
-    for (const key in this.state.components) {
+    for (const key in this.state.bookmarkProperties) {
       resArr.push(key);
     }
   }
@@ -139,13 +150,14 @@ class FileHandler extends React.Component {
     this.readFile().then((file) => {console.log('this is: ' + file)});
   }
 
+      // <button onClick={() => this.getFile}>Upload Bookmarks File</button>
+
   render() {
     // dataBtn.onClick(this.handleClick);
 
     return (
       <div className="FileHandler">
         <input type="file" id="file-selector" onChange={this.readFile} />
-        <button onClick={() => this.getFile}>File Object</button>
         <br />
         <div id="htmlObj"></div>
       </div>
